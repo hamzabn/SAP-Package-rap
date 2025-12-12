@@ -10,12 +10,19 @@ etag master LastChangedAt
 early numbering
 {
   field ( readonly ) TravelId;
+
+  action acceptTravel result [1] $self;
+  action rejectTravel result [1] $self;
+
+  factory action copyTravel [1];
+  internal action reCalcTotPrice;
+
   create ( authorization : global );
   update;
   delete;
 
   association _Booking { create; }
-   mapping for ztravel_try_m
+  mapping for ztravel_try_m
     {
       TravelId      = travel_id;
       AgencyId      = agency_id;
@@ -48,7 +55,7 @@ early numbering
 
   association _Travel;
   association _BookingSupp { create; }
-   mapping for zbooking_try_m
+  mapping for zbooking_try_m
     {
       TravelId      = travel_id;
       BookingId     = booking_id;
@@ -77,7 +84,7 @@ early numbering
   field ( readonly ) TravelId, BookingId, BookingSupplementId;
   association _Travel;
   association _Bookingsup;
-    mapping for zbooksupp_try_m
+  mapping for zbooksupp_try_m
     {
       TravelId            = travel_id;
       BookingId           = booking_id;

@@ -1,0 +1,5 @@
+@EndUserText.label: 'Approver Application'
+define service ZSR_TRAVEL_TRY_APProver_M {
+  expose ZC_TRAVEL_TRY_APPROVER_M;
+  expose ZC_BOOKING_TRY_APPROVER_M;
+}
