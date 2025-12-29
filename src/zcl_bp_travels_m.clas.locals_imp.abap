@@ -23,6 +23,8 @@ CLASS lhc_ZI_TRAVEL_TRY_M DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS rejecttravel FOR MODIFY
       IMPORTING keys FOR ACTION zi_travel_try_m~rejecttravel RESULT result.
+    METHODS get_instance_features FOR INSTANCE FEATURES
+      IMPORTING keys REQUEST requested_features FOR zi_travel_try_m RESULT result.
 
 
 
@@ -269,6 +271,9 @@ CLASS lhc_ZI_TRAVEL_TRY_M IMPLEMENTATION.
 
     result = VALUE #( FOR ls_result IN lt_result ( %tky = ls_result-%tky
                                                %param = ls_result ) ).
+  ENDMETHOD.
+
+  METHOD get_instance_features.
   ENDMETHOD.
 
 ENDCLASS.
