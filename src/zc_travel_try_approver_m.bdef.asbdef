@@ -3,7 +3,7 @@ strict ( 2 );
 
 
 define behavior for ZC_TRAVEL_TRY_APPROVER_M //alias <alias_name>
-
+use etag
 {
   // use create;
   use update;

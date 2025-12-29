@@ -125,8 +125,8 @@ CLASS lhc_ZI_TRAVEL_TRY_M IMPLEMENTATION.
 
         LOOP AT <ls_group_entity>-%target ASSIGNING FIELD-SYMBOL(<ls_booking>).
 
-            APPEND CORRESPONDING #( <ls_booking> ) TO mapped-zi_booking_try_m
-            ASSIGNING FIELD-SYMBOL(<ls_new_map_book>).
+          APPEND CORRESPONDING #( <ls_booking> ) TO mapped-zi_booking_try_m
+          ASSIGNING FIELD-SYMBOL(<ls_new_map_book>).
           IF <ls_booking>-BookingId IS INITIAL.
             lv_max_booking += 1.
 
@@ -142,11 +142,26 @@ CLASS lhc_ZI_TRAVEL_TRY_M IMPLEMENTATION.
 
   ENDMETHOD.
 
+*--------------------- Accept Method implementation ----------------------
 
   METHOD acceptTravel.
+
+    MODIFY ENTITIES OF zi_travel_try_m IN LOCAL MODE
+    ENTITY zi_travel_try_m
+    UPDATE FIELDS ( OverallStatus )
+    WITH VALUE #( FOR ls_keys IN keys ( %tky = ls_keys-%tky
+                                        OverallStatus = 'A' ) ).
+
+    READ ENTITIES OF zi_travel_try_m IN LOCAL MODE
+    ENTITY zi_travel_try_m
+    ALL FIELDS WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_result).
+
+    result = VALUE #( FOR ls_result IN lt_result ( %tky = ls_result-%tky
+                                               %param = ls_result ) ).
   ENDMETHOD.
 
-*--------------------- Method implementation ----------------------
+*--------------------- COPY Method implementation ----------------------
   METHOD copyTravel.
 
     DATA : it_travel        TYPE TABLE FOR CREATE zi_travel_try_m,
@@ -204,9 +219,9 @@ CLASS lhc_ZI_TRAVEL_TRY_M IMPLEMENTATION.
                                 WHERE travelId = <ls_travel_r>-TravelId
                                 AND bookingId = <ls_booking_r>-BookingId.
 
-        APPEND VALUE #( %cid = <ls_travel>-%cid && <ls_booking_r>-BookingId && <ls_booksupp_r>-BookingSupplementId
-                           %data = CORRESPONDING #( <ls_booksupp_r> EXCEPT TravelId BookingId ) )
-                   TO <ls_booksupp>-%target.
+          APPEND VALUE #( %cid = <ls_travel>-%cid && <ls_booking_r>-BookingId && <ls_booksupp_r>-BookingSupplementId
+                             %data = CORRESPONDING #( <ls_booksupp_r> EXCEPT TravelId BookingId ) )
+                     TO <ls_booksupp>-%target.
         ENDLOOP.
       ENDLOOP.
     ENDLOOP.
@@ -231,12 +246,29 @@ CLASS lhc_ZI_TRAVEL_TRY_M IMPLEMENTATION.
 
 
   ENDMETHOD.
-*-------------------------------------------------------------------------------------------------------------------------
+*-------------------ReCalc_Price Method implementation------------------
 
   METHOD reCalcTotPrice.
+
   ENDMETHOD.
 
+*---------------------REJECT Method implementation----------------------
+
   METHOD rejectTravel.
+
+    MODIFY ENTITIES OF zi_travel_try_m IN LOCAL MODE
+    ENTITY zi_travel_try_m
+    UPDATE FIELDS ( OverallStatus )
+    WITH VALUE #( FOR ls_keys IN keys ( %tky = ls_keys-%tky
+                                        OverallStatus = 'X' ) ).
+
+    READ ENTITIES OF zi_travel_try_m IN LOCAL MODE
+    ENTITY zi_travel_try_m
+    ALL FIELDS WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_result).
+
+    result = VALUE #( FOR ls_result IN lt_result ( %tky = ls_result-%tky
+                                               %param = ls_result ) ).
   ENDMETHOD.
 
 ENDCLASS.
