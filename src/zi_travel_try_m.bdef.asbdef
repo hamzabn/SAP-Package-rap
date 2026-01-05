@@ -10,7 +10,7 @@ etag master LastChangedAt
 early numbering
 {
   field ( readonly ) TravelId, LastChangedBy, LastChangedAt, CreatedAt, CreatedBy;
-  field ( mandatory ) AgencyId, CustomerId, BeginDate, EndDate, overallStatus,Bookingfee, CurrencyCode ;
+  field ( mandatory ) AgencyId, CustomerId, BeginDate, EndDate, overallStatus, Bookingfee, CurrencyCode;
 
 
   action ( features : instance ) acceptTravel result [1] $self;
@@ -54,10 +54,12 @@ early numbering
 {
   update;
   delete;
-  field ( readonly ) TravelId, BookingId;
+  field ( readonly ) TravelId, BookingId, LastChangedAt;
+  field ( mandatory ) CarrierId, ConnectionId, FlightDate, BookingStatus;
+  field ( mandatory : create, readonly : update ) BookingDate, CustomerId;
 
   association _Travel;
-  association _BookingSupp { create; }
+  association _BookingSupp { create ( features : instance ); }
   mapping for zbooking_try_m
     {
       TravelId      = travel_id;
@@ -84,7 +86,8 @@ early numbering
 {
   update;
   delete;
-  field ( readonly ) TravelId, BookingId, BookingSupplementId;
+  field ( readonly ) TravelId, BookingId, BookingSupplementId, LastChangedAt;
+  field ( mandatory ) SupplementId, Price;
   association _Travel;
   association _Bookingsup;
   mapping for zbooksupp_try_m

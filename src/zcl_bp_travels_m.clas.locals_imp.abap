@@ -23,6 +23,8 @@ CLASS lhc_ZI_TRAVEL_TRY_M DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS rejecttravel FOR MODIFY
       IMPORTING keys FOR ACTION zi_travel_try_m~rejecttravel RESULT result.
+
+
     METHODS get_instance_features FOR INSTANCE FEATURES
       IMPORTING keys REQUEST requested_features FOR zi_travel_try_m RESULT result.
 
@@ -274,6 +276,28 @@ CLASS lhc_ZI_TRAVEL_TRY_M IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_features.
+    READ ENTITIES OF zi_travel_try_m in LOCAL MODE
+    ENTITY zi_travel_try_m
+    FIELDS ( TravelId OverallStatus )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_travel).
+
+    result = VALUE #( for ls_travel in lt_travel
+                    ( %tky = ls_travel-%tky
+                      %features-%action-acceptTravel = cond #( WHEN ls_travel-OverallStatus ='A'
+                                                               THEN if_abap_behv=>fc-o-disabled
+                                                               ELSE if_abap_behv=>fc-o-enabled )
+                      %features-%action-rejectTravel = cond #( WHEN ls_travel-OverallStatus ='X'
+                                                               THEN if_abap_behv=>fc-o-disabled
+                                                               ELSE if_abap_behv=>fc-o-enabled )
+* %assoc = association
+                      %features-%assoc-_Booking = cond #( WHEN ls_travel-OverallStatus ='X'
+                                                               THEN if_abap_behv=>fc-o-disabled
+                                                               ELSE if_abap_behv=>fc-o-enabled )
+
+                        )
+    ).
+
   ENDMETHOD.
 
 ENDCLASS.
