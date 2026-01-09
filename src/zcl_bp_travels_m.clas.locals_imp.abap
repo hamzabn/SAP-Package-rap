@@ -27,6 +27,20 @@ CLASS lhc_ZI_TRAVEL_TRY_M DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS get_instance_features FOR INSTANCE FEATURES
       IMPORTING keys REQUEST requested_features FOR zi_travel_try_m RESULT result.
+    METHODS validatebookingfee FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zi_travel_try_m~validatebookingfee.
+
+    METHODS validatecurrencycode FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zi_travel_try_m~validatecurrencycode.
+
+    METHODS validatecustomer FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zi_travel_try_m~validatecustomer.
+
+    METHODS validatedates FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zi_travel_try_m~validatedates.
+
+    METHODS validatestatus FOR VALIDATE ON SAVE
+      IMPORTING keys FOR zi_travel_try_m~validatestatus.
 
 
 
@@ -276,27 +290,158 @@ CLASS lhc_ZI_TRAVEL_TRY_M IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_features.
-    READ ENTITIES OF zi_travel_try_m in LOCAL MODE
+    READ ENTITIES OF zi_travel_try_m IN LOCAL MODE
     ENTITY zi_travel_try_m
     FIELDS ( TravelId OverallStatus )
     WITH CORRESPONDING #( keys )
     RESULT DATA(lt_travel).
 
-    result = VALUE #( for ls_travel in lt_travel
+    result = VALUE #( FOR ls_travel IN lt_travel
                     ( %tky = ls_travel-%tky
-                      %features-%action-acceptTravel = cond #( WHEN ls_travel-OverallStatus ='A'
+                      %features-%action-acceptTravel = COND #( WHEN ls_travel-OverallStatus = ' A '
                                                                THEN if_abap_behv=>fc-o-disabled
                                                                ELSE if_abap_behv=>fc-o-enabled )
-                      %features-%action-rejectTravel = cond #( WHEN ls_travel-OverallStatus ='X'
+                      %features-%action-rejectTravel = COND #( WHEN ls_travel-OverallStatus = ' X '
                                                                THEN if_abap_behv=>fc-o-disabled
                                                                ELSE if_abap_behv=>fc-o-enabled )
 * %assoc = association
-                      %features-%assoc-_Booking = cond #( WHEN ls_travel-OverallStatus ='X'
+                      %features-%assoc-_Booking = COND #( WHEN ls_travel-OverallStatus = ' X '
                                                                THEN if_abap_behv=>fc-o-disabled
                                                                ELSE if_abap_behv=>fc-o-enabled )
 
                         )
     ).
+
+  ENDMETHOD.
+
+
+*----------------- RAP Validation methods ---------------------
+  METHOD validateBookingFee.
+  ENDMETHOD.
+
+  METHOD validateCurrencyCode.
+  ENDMETHOD.
+
+  METHOD validateCustomer.
+
+    READ ENTITY  IN LOCAL MODE zi_travel_try_m
+     FIELDS ( CustomerId )
+     WITH CORRESPONDING #( keys )
+     RESULT DATA(lt_travel).
+
+    DATA: lt_cust TYPE SORTED TABLE OF /dmo/customer WITH UNIQUE KEY customer_id.
+
+    lt_cust = CORRESPONDING #( lt_travel DISCARDING DUPLICATES MAPPING customer_id = CustomerId  ).
+    DELETE lt_cust WHERE customer_id IS INITIAL.
+    SELECT
+     FROM /dmo/customer
+     FIELDS customer_id
+     FOR ALL ENTRIES IN @lt_cust
+     WHERE customer_id = @lt_cust-customer_id
+     INTO TABLE @DATA(lt_cust_db).
+    IF sy-subrc IS INITIAL.
+
+    ENDIF.
+
+    LOOP AT lt_travel ASSIGNING FIELD-SYMBOL(<ls_travel>).
+
+      IF <ls_travel>-CustomerId IS INITIAL
+         OR  NOT line_exists( lt_cust_db[ customer_id = <ls_travel>-CustomerId  ] )   .
+
+        APPEND VALUE #( %tky = <ls_travel>-%tky )
+                   TO failed-zi_travel_try_m.
+        APPEND VALUE #( %tky = <ls_travel>-%tky
+                        %msg = NEW /dmo/cm_flight_messages(
+                                            textid                = /dmo/cm_flight_messages=>customer_unkown
+                                           customer_id           = <ls_travel>-CustomerId
+                                severity              = if_abap_behv_message=>severity-error
+                                )
+                        %element-CustomerId = if_abap_behv=>mk-on
+
+        )
+                   TO reported-zi_travel_try_m.
+
+
+
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD validateDates.
+
+    READ ENTITIES OF zi_travel_try_m IN LOCAL MODE
+               ENTITY zi_travel_try_m
+                 FIELDS ( BeginDate EndDate )
+                 WITH CORRESPONDING #( keys )
+               RESULT DATA(lt_travels).
+
+    LOOP AT lt_travels INTO DATA(travel).
+
+      IF travel-EndDate < travel-BeginDate.  "end_date before begin_date
+
+        APPEND VALUE #( %tky = travel-%tky ) TO failed-zi_travel_try_m.
+
+        APPEND VALUE #( %tky = travel-%tky
+                        %msg = NEW /dmo/cm_flight_messages(
+                                   textid     = /dmo/cm_flight_messages=>begin_date_bef_end_date
+                                   severity   = if_abap_behv_message=>severity-error
+                                   begin_date = travel-BeginDate
+                                   end_date   = travel-EndDate
+                                   travel_id  = travel-TravelId )
+                        %element-BeginDate   = if_abap_behv=>mk-on
+                        %element-EndDate     = if_abap_behv=>mk-on
+                     ) TO reported-zi_travel_try_m.
+
+      ELSEIF travel-BeginDate < cl_abap_context_info=>get_system_date( ).  "begin_date must be in the future
+
+        APPEND VALUE #( %tky        = travel-%tky ) TO failed-zi_travel_try_m.
+
+        APPEND VALUE #( %tky = travel-%tky
+                        %msg = NEW /dmo/cm_flight_messages(
+                                    textid   = /dmo/cm_flight_messages=>begin_date_on_or_bef_sysdate
+                                    severity = if_abap_behv_message=>severity-error )
+                        %element-BeginDate  = if_abap_behv=>mk-on
+                        %element-EndDate    = if_abap_behv=>mk-on
+                      ) TO reported-zi_travel_try_m.
+      ENDIF.
+
+    ENDLOOP.
+
+
+
+  ENDMETHOD.
+
+
+
+
+  METHOD validateStatus.
+    READ ENTITIES OF zi_travel_try_m IN LOCAL MODE
+      ENTITY zi_travel_try_m
+        FIELDS ( OverallStatus )
+        WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_travels).
+
+    LOOP AT lt_travels INTO DATA(ls_travel).
+      CASE ls_travel-OverallStatus.
+        WHEN 'O'.  " Open
+        WHEN 'X'.  " Cancelled
+        WHEN 'A'.  " Accepted
+
+        WHEN OTHERS.
+          APPEND VALUE #( %tky = ls_travel-%tky ) TO failed-zi_travel_try_m.
+
+          APPEND VALUE #( %tky = ls_travel-%tky
+                          %msg = NEW /dmo/cm_flight_messages(
+                                     textid = /dmo/cm_flight_messages=>status_invalid
+                                     severity = if_abap_behv_message=>severity-error
+                                     status = ls_travel-OverallStatus )
+                          %element-OverallStatus = if_abap_behv=>mk-on
+                        ) TO reported-zi_travel_try_m.
+      ENDCASE.
+    ENDLOOP.
+
 
   ENDMETHOD.
 

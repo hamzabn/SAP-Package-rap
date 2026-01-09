@@ -20,6 +20,13 @@ early numbering
 
   internal action reCalcTotPrice;
 
+  //-----------------validation(RAP Validations )--------------------------
+  validation validateCustomer on save { create; field CustomerId; }
+  validation validateDates on save { create; field BeginDate, EndDate; }
+  validation validateStatus on save { create; field OverallStatus; }
+  validation validateCurrencyCode on save { create; field CurrencyCode; }
+  validation validateBookingFee on save { create; field BookingFee; }
+
   create ( authorization : global );
   update;
   delete;
@@ -58,6 +65,13 @@ early numbering
   field ( mandatory ) CarrierId, ConnectionId, FlightDate, BookingStatus;
   field ( mandatory : create, readonly : update ) BookingDate, CustomerId;
 
+  //-----------------validation(RAP Validations )--------------------------
+  validation validateStatus on save { create; field BookingStatus; }
+  validation validateCustomer on save { create; field CustomerId; }
+  validation validateCurrencyCode on save { create; field CurrencyCode; }
+  validation validateConnection on save { create; field CarrierId, ConnectionId, FlightDate; }
+  validation validateFlightPrice on save { create; field FlightPrice; }
+
   association _Travel;
   association _BookingSupp { create ( features : instance ); }
   mapping for zbooking_try_m
@@ -88,6 +102,12 @@ early numbering
   delete;
   field ( readonly ) TravelId, BookingId, BookingSupplementId, LastChangedAt;
   field ( mandatory ) SupplementId, Price;
+
+  //-----------------validation(RAP Validations )--------------------------
+  validation validateCurrencyCode on save { create; field CurrencyCode; }
+  validation validateSupplement on save { create; field SupplementId; }
+  validation validatePrice on save { create; field price; }
+
   association _Travel;
   association _Bookingsup;
   mapping for zbooksupp_try_m

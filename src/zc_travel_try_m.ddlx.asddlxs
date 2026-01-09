@@ -28,12 +28,16 @@ annotate view ZC_TRAVEL_TR_M with
       targetElement: '_Booking'
   }]
 
+
+//UI.lineItem: les colonnes dans le list report 
+ //@UI.identification: Le détail de l'item
+
   @UI.lineItem: [{ position: 10 },
-                 { type:#FOR_ACTION, dataAction: 'copyTravel', label:'Copy Travel'}]
+                 { type:#FOR_ACTION, dataAction: 'copyTravel', label:'Copy Travel'}] // associer travel id à l'action copyTravel '
   @UI.identification: [{ position :10  }]
   @Search.defaultSearchElement: true
-
   TravelId;
+  
   @UI: {lineItem: [{ position: 20 }],
         selectionField: [{ position : 20 }],
         identification: [{ position : 20  }]
@@ -45,7 +49,9 @@ annotate view ZC_TRAVEL_TR_M with
   element :'AgencyID'
   }  }]
   AgencyId;
-  //AgencyName;
+  
+  
+  //Customer ID ;
   @UI: {lineItem: [{ position: 30 }],
         selectionField: [{ position : 30 }],
         identification: [{ position : 30 }]
@@ -56,25 +62,39 @@ annotate view ZC_TRAVEL_TR_M with
   element :'CustomerID'
   }  }]
   CustomerId;
-  //CustomerName;
+  
+  
+  //Being date;
   @UI.lineItem: [{ position: 40 }]
   @UI.identification: [{ position :40  }]
   BeginDate;
+  
+  //end date;
   @UI.lineItem: [{ position: 50 }]
   @UI.identification: [{ position :50  }]
   EndDate;
+  
+   //Booking free;
   @UI.identification: [{ position :55  }]
   BookingFee;
+  
+  //Total price 
   @UI.lineItem: [{ position: 60 }]
   @UI.identification: [{ position :60  }]
   TotalPrice;
+  
+  //Currency code 
   @Consumption.valueHelpDefinition: [{ entity :{
   name :'I_Currency',
   element :'Currency'
   }  }]
   CurrencyCode;
+  
+  //Description 
   @UI.identification: [{ position :65 }]
   Description;
+  
+   //OverallStatusText;
   @UI: {lineItem: [{ position: 70 }],
        selectionField: [{ position : 40 }],
        identification: [{ position :70  }],
@@ -86,7 +106,8 @@ annotate view ZC_TRAVEL_TR_M with
   element :'OverallStatus'
   }  }]
   OverallStatus;
-  //OverallStatusText;
+  
+ //Last change 
   @UI.hidden: true
   LastChangedAt;
 
